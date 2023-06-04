@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  rust-hw-1-test:
+    build:
+      context: .docker
+      dockerfile: Dockerfile.test
+    container_name: rust-hw-1-test
+    volumes:
+      - ./:/src
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true

@@ -1,0 +1,6 @@
+# 1. This tells docker to use the Rust official image
+FROM rust:latest
+
+# test your program for release
+RUN rustup component add clippy
+RUN rustup component add rustfmt

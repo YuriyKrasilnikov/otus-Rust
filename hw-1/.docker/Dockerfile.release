@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1
+
+# stage 1
+# Rust as the base image
+FROM rust:latest as build
+
+# Create a new empty shell project
+RUN USER=root cargo new --bin hw1
+WORKDIR /hw1
+
+# Copy our manifests
+COPY ./Cargo.toml ./Cargo.toml
+
+# Build only the dependencies to cache them
+RUN cargo build --release
+RUN rm src/*.rs
+
+# Copy the source code
+COPY ./src ./src
+
+# Build for release.
+RUN rm -f ./target/release/deps/hw1*
+RUN cargo build --release
+
+# stage 2
+# The final base image
+FROM debian:buster-slim
+
+# Copy from the previous build
+COPY --from=build /hw1/target/release/hw1 /usr/src/hw1
+# COPY --from=build /hw1/target/release/hw1/target/x86_64-unknown-linux-musl/release/hw1 .
+
+# Run the binary
+CMD ["/usr/src/hw1"]
