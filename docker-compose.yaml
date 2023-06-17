@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  jupyter-miniconda-rust:
+    image: jupyter-miniconda-rust:latest
+    build:
+      context: .docker
+      dockerfile: Dockerfile
+    container_name: jupyter-miniconda-rust
+    #restart: unless-stopped
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/opt/notebooks
+    entrypoint: jupyter lab --notebook-dir=/opt/notebooks --ip='*' --port=8888 --no-browser --allow-root
+    tty: true
