@@ -5,19 +5,19 @@ use std::option::Option;
 // Термометр
 
 #[derive(Debug, Clone)]
-struct SmartThermometer {
-    description: String,
-    temperature: u8,
+pub struct SmartThermometer {
+    pub description: String,
+    pub temperature: u8,
 }
 
 impl fmt::Display for SmartThermometer {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-      write!(
-          f,
-          "(Description: {}\nTemperature: {})",
-          self.description, self.temperature
-      )
-  }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "(Description: {}\nTemperature: {})",
+            self.description, self.temperature
+        )
+    }
 }
 
 #[allow(dead_code)]

@@ -1,6 +1,10 @@
-extern crate uuid;
+extern crate hw4;
 
-use std::fmt;
+use hw4::device::smart_device::outlet::SmartOutlet;
+use hw4::device::smart_device::thermometer::SmartThermometer;
+use hw4::device::smart_device::SmartDevice;
+use hw4::device::Device;
+use hw4::house::SmartHouse;
 
 fn main() {
     // Инициализация дома

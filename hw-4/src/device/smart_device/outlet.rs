@@ -5,19 +5,19 @@ use std::option::Option;
 // Розетка
 
 #[derive(Debug, Clone)]
-struct SmartOutlet {
-    description: String,
-    power: u8,
+pub struct SmartOutlet {
+    pub description: String,
+    pub power: u8,
 }
 
 impl fmt::Display for SmartOutlet {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-      write!(
-          f,
-          "(Description: {}\nPower: {})",
-          self.description, self.power
-      )
-  }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "(Description: {}\nPower: {})",
+            self.description, self.power
+        )
+    }
 }
 
 #[allow(dead_code)]
