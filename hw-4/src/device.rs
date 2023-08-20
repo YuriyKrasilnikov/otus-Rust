@@ -12,7 +12,7 @@ extern crate dyn_partial_eq;
 use self::dyn_partial_eq::dyn_partial_eq;
 
 #[dyn_partial_eq]
-pub(crate) trait SmartDevices: fmt::Debug + fmt::Display + SmartDevicesClone{}
+pub(crate) trait SmartDevices: fmt::Debug + fmt::Display + SmartDevicesClone {}
 
 pub(crate) trait SmartDevicesClone {
     fn clone_box(&self) -> Box<dyn SmartDevices>;
@@ -38,10 +38,10 @@ impl Clone for Box<dyn SmartDevices> {
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Device {
-    id: Uuid,     // у каждого девайса должен быть уникальный номер
-    name: String, // у каждого девайса должено быть имя
-    on: bool,     // каждый девайс может быть или работать или нет
-    config: Box<dyn SmartDevices>,    // каждый девайс имеет свой тип информации о себе, который можно прочитать
+    id: Uuid,                      // у каждого девайса должен быть уникальный номер
+    name: String,                  // у каждого девайса должено быть имя
+    on: bool,                      // каждый девайс может быть или работать или нет
+    config: Box<dyn SmartDevices>, // каждый девайс имеет свой тип информации о себе, который можно прочитать
 }
 
 impl fmt::Display for Device {
@@ -92,7 +92,6 @@ mod tests {
     fn test_get_name() {
         let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new("test_device".to_string(), test_outlet, None);
-        assert_eq!(test_dev.name(),"test_device".to_string());
+        assert_eq!(test_dev.name(), "test_device".to_string());
     }
-
 }

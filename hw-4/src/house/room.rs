@@ -68,13 +68,10 @@ impl SmartRoom {
     }
 
     pub(crate) fn add_device(&mut self, device: Device) -> fmt::Result {
-        self.devices
-            .insert(device.name().to_string(), device);
+        self.devices.insert(device.name().to_string(), device);
         Ok(())
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -82,9 +79,9 @@ mod tests {
     use super::*;
 
     #[warn(unused_imports)]
-    use device::Device;
-    #[warn(unused_imports)]
     use device::outlet::SmartOutlet;
+    #[warn(unused_imports)]
+    use device::Device;
     // #[warn(unused_imports)]
     // use device::thermometer::SmartThermometer;
 
@@ -102,9 +99,12 @@ mod tests {
 
         assert_eq!(test_room.add_device(test_dev.clone()), Ok(()));
         assert_eq!(test_room.get(None).len(), 1);
-        assert_eq!(test_room.get(Some(vec!["test_device".to_string()])), vec![&test_dev]);
+        assert_eq!(
+            test_room.get(Some(vec!["test_device".to_string()])),
+            vec![&test_dev]
+        );
     }
-   
+
     #[test]
     fn test_report() {
         let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
@@ -115,10 +115,8 @@ mod tests {
 
         let report = test_room.report(None);
 
-        print!("{}\n",report);
+        print!("{}\n", report);
 
         assert_eq!(report,"Name: test_room,\nDevices:\n[\n{\nName: test_device,\nOn: false,\nDescription: test,\nPower: 0\n},\n]".to_string());
     }
-
-
 }

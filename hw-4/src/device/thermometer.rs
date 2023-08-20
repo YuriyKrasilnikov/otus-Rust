@@ -50,7 +50,7 @@ mod tests {
     fn test_new() {
         assert_eq!(
             SmartThermometer::new("test".to_string(), None),
-            SmartThermometer{
+            SmartThermometer {
                 description: "test".to_string(),
                 temperature: 0,
             }
@@ -59,7 +59,9 @@ mod tests {
 
     #[test]
     fn test_display() {
-        assert_eq!(SmartThermometer::new("test".to_string(), None).to_string(), "Description: test,\nTemperature: 0");
+        assert_eq!(
+            SmartThermometer::new("test".to_string(), None).to_string(),
+            "Description: test,\nTemperature: 0"
+        );
     }
-
 }

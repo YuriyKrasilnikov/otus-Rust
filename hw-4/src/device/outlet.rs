@@ -50,7 +50,7 @@ mod tests {
     fn test_new() {
         assert_eq!(
             SmartOutlet::new("test".to_string(), None),
-            SmartOutlet{
+            SmartOutlet {
                 description: "test".to_string(),
                 power: 0,
             }
@@ -59,7 +59,9 @@ mod tests {
 
     #[test]
     fn test_display() {
-        assert_eq!(SmartOutlet::new("test".to_string(), None).to_string(), "Description: test,\nPower: 0");
+        assert_eq!(
+            SmartOutlet::new("test".to_string(), None).to_string(),
+            "Description: test,\nPower: 0"
+        );
     }
-
 }
