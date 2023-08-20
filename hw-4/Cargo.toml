@@ -4,6 +4,7 @@ version = "0.0.1"              # the current version, obeying semver
 authors = ["Yuriy Krasilnikov"]
 
 [dependencies]
+dyn_partial_eq = "0.1.2"
 uuid = {version = "1.4.1", features = ["v4"]}
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
