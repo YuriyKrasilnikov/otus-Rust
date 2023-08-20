@@ -55,6 +55,17 @@ impl SmartRoom {
         }
     }
 
+    pub(crate) fn add_device(&mut self, device: Device, name: Option<String>) -> fmt::Result {
+        self.devices
+            .insert(name.unwrap_or(device.name().to_string()), device);
+        Ok(())
+    }
+
+    pub(crate) fn remove_device(&mut self, name: String) -> fmt::Result {
+        self.devices.remove(&name);
+        Ok(())
+    }
+
     pub(crate) fn report(&self, devices: Option<Vec<String>>) -> String {
         let mut result = format!("Name: {},\n", self.name);
         result += "Devices:\n[\n";
@@ -65,11 +76,6 @@ impl SmartRoom {
         }
         result += "]";
         result
-    }
-
-    pub(crate) fn add_device(&mut self, device: Device) -> fmt::Result {
-        self.devices.insert(device.name().to_string(), device);
-        Ok(())
     }
 }
 
@@ -86,18 +92,18 @@ mod tests {
     // use device::thermometer::SmartThermometer;
 
     #[test]
-    fn test_get_null() {
+    fn get_null(){
         let test_room = SmartRoom::new("test_room".to_string());
         assert_eq!(test_room.get(None).len(), 0);
     }
 
     #[test]
-    fn test_add_device() {
+    fn add_device() {
         let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new("test_device".to_string(), test_outlet, None);
         let mut test_room = SmartRoom::new("test_room".to_string());
 
-        assert_eq!(test_room.add_device(test_dev.clone()), Ok(()));
+        assert_eq!(test_room.add_device(test_dev.clone(), None), Ok(()));
         assert_eq!(test_room.get(None).len(), 1);
         assert_eq!(
             test_room.get(Some(vec!["test_device".to_string()])),
@@ -106,12 +112,25 @@ mod tests {
     }
 
     #[test]
-    fn test_report() {
+    fn remove_device() {
         let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new("test_device".to_string(), test_outlet, None);
         let mut test_room = SmartRoom::new("test_room".to_string());
 
-        assert_eq!(test_room.add_device(test_dev.clone()), Ok(()));
+        assert_eq!(test_room.add_device(test_dev.clone(), None), Ok(()));
+        assert_eq!(test_room.get(None).len(), 1);
+
+        assert_eq!(test_room.remove_device("test_device".to_string()), Ok(()));
+        assert_eq!(test_room.get(None).len(), 0);
+    }
+
+    #[test]
+    fn report() {
+        let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
+        let test_dev = Device::new("test_device".to_string(), test_outlet, None);
+        let mut test_room = SmartRoom::new("test_room".to_string());
+
+        assert_eq!(test_room.add_device(test_dev.clone(), None), Ok(()));
 
         let report = test_room.report(None);
 

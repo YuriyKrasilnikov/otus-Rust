@@ -48,10 +48,15 @@ impl SmartHouse {
         Ok(())
     }
 
+    pub fn remove_room(&mut self, name: String) -> fmt::Result {
+        self.rooms.remove(&name);
+        Ok(())
+    }
+
     pub fn add_device(&mut self, room: String, device: Device) -> Result<(), RoomError> {
         let smartroom = self.rooms.get_mut(&room).ok_or(RoomError {})?;
         //SmartRoom::add_devices(smartroom, device);
-        let _ = smartroom.add_device(device);
+        let _ = smartroom.add_device(device, None);
         Ok(())
     }
 
@@ -105,13 +110,13 @@ mod tests {
     // use device::thermometer::SmartThermometer;
 
     #[test]
-    fn test_get_null() {
+    fn get_null() {
         let test_house = SmartHouse::new("test_house".to_string());
         assert_eq!(test_house.get(None).len(), 0);
     }
 
     #[test]
-    fn test_add_room() {
+    fn add_room() {
         let mut test_house = SmartHouse::new("test_house".to_string());
 
         assert_eq!(test_house.add_room("test_room".to_string()), Ok(()));
@@ -123,7 +128,18 @@ mod tests {
     }
 
     #[test]
-    fn test_add_device() {
+    fn remove_room() {
+        let mut test_house = SmartHouse::new("test_house".to_string());
+
+        assert_eq!(test_house.add_room("test_room".to_string()), Ok(()));
+        assert_eq!(test_house.get(None).len(), 1);
+
+        assert_eq!(test_house.remove_room("test_room".to_string()), Ok(()));
+        assert_eq!(test_house.get(None).len(), 0);
+    }
+
+    #[test]
+    fn add_device() {
         let name_room = "test_room".to_string();
         let name_device = "test_device".to_string();
 
@@ -140,7 +156,7 @@ mod tests {
     }
 
     #[test]
-    fn test_report() {
+    fn report() {
         let name_house = "test_house".to_string();
         let name_room = "test_room".to_string();
         let name_device = "test_device".to_string();

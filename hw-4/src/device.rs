@@ -89,7 +89,7 @@ mod tests {
     // use self::thermometer::SmartThermometer;
 
     #[test]
-    fn test_get_name() {
+    fn get_name() {
         let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new("test_device".to_string(), test_outlet, None);
         assert_eq!(test_dev.name(), "test_device".to_string());

@@ -47,7 +47,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_new() {
+    fn new() {
         assert_eq!(
             SmartOutlet::new("test".to_string(), None),
             SmartOutlet {
@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn test_display() {
+    fn display() {
         assert_eq!(
             SmartOutlet::new("test".to_string(), None).to_string(),
             "Description: test,\nPower: 0"
