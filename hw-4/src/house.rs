@@ -60,6 +60,12 @@ impl SmartHouse {
         Ok(())
     }
 
+    pub fn remove_device(&mut self, room: String, device_name: String) -> Result<(), RoomError> {
+        let smartroom = self.rooms.get_mut(&room).ok_or(RoomError {})?;
+        let _ = smartroom.remove_device(device_name);
+        Ok(())
+    }
+
     pub fn get(&self, rooms: Option<Vec<String>>) -> Vec<&SmartRoom> {
         if rooms.is_some() {
             self.rooms
@@ -153,6 +159,28 @@ mod tests {
         let _ = test_house.add_device(name_room.clone(), test_dev.clone());
 
         assert_eq!(test_house.devices(name_room.clone()), good_result);
+    }
+
+    #[test]
+    fn remove_device() {
+        let name_room = "test_room".to_string();
+        let name_device = "test_device".to_string();
+
+        let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
+        let test_dev = Device::new(name_device.clone(), test_outlet, None);
+        let mut test_house = SmartHouse::new("test_house".to_string());
+
+        let _ = test_house.add_room(name_room.clone());
+        let _ = test_house.add_device(name_room.clone(), test_dev.clone());
+
+        assert_eq!(
+            test_house.devices(name_room.clone()),
+            Ok(vec![&name_device])
+        );
+
+        let _ = test_house.remove_device(name_room.clone(), name_device.clone());
+
+        assert_eq!(test_house.devices(name_room.clone()), Ok(vec![]));
     }
 
     #[test]

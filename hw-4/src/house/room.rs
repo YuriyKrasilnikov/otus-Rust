@@ -92,7 +92,7 @@ mod tests {
     // use device::thermometer::SmartThermometer;
 
     #[test]
-    fn get_null(){
+    fn get_null() {
         let test_room = SmartRoom::new("test_room".to_string());
         assert_eq!(test_room.get(None).len(), 0);
     }
