@@ -1,0 +1,21 @@
+[package]
+name = "smart_house"                   # the name of the package
+version = "0.0.1"              # the current version, obeying semver
+authors = ["Yuriy Krasilnikov"]
+edition = "2021"
+
+[dependencies]
+dyn_partial_eq = "0.1.2"
+uuid = {version = "1.4.1", features = ["v4"]}
+ctp = { path = "../ctp" }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+# [lib]
+# name = "hw4"
+# path = "src/lib.rs"
+
+# [[bin]]
+# name = "hw4"
+# path = "src/main.rs"
+

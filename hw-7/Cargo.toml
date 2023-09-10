@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "ctp",
+    "smart_house"
+]
+
