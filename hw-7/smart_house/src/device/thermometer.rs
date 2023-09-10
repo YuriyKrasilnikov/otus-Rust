@@ -2,12 +2,11 @@ use std::fmt;
 
 use std::option::Option;
 
-use super::dyn_partial_eq::DynPartialEq;
 use super::SmartDevices;
 
 // Термометр
 
-#[derive(Debug, Clone, DynPartialEq, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SmartThermometer {
     description: String,
     temperature: u8,

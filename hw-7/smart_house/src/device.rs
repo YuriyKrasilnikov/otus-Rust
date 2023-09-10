@@ -5,43 +5,28 @@ use std::fmt::{self, Debug};
 
 use std::option::Option;
 
-extern crate uuid;
-use self::uuid::Uuid;
+use uuid::Uuid;
 
-extern crate dyn_partial_eq;
-use self::dyn_partial_eq::dyn_partial_eq;
+use std::sync::Arc;
+// use std::sync::Mutex;
+use std::sync::RwLock;
 
-#[dyn_partial_eq]
-pub(crate) trait SmartDevices: fmt::Debug + fmt::Display + SmartDevicesClone {}
+use tonic::{Request, Response, Status};
 
-pub(crate) trait SmartDevicesClone {
-    fn clone_box(&self) -> Box<dyn SmartDevices>;
-    // fn partial_eq_box(&self) -> bool;
-}
+use ctp::devices;
+use ctp::devices::device_control_server::DeviceControl;
+use ctp::devices::{DeviceStatus, Empty, Toggle};
 
-impl<T> SmartDevicesClone for T
-where
-    T: 'static + SmartDevices + Clone,
-{
-    fn clone_box(&self) -> Box<dyn SmartDevices> {
-        Box::new(self.clone())
-    }
-}
-
-impl Clone for Box<dyn SmartDevices> {
-    fn clone(&self) -> Box<dyn SmartDevices> {
-        self.clone_box()
-    }
-}
+pub(crate) trait SmartDevices: fmt::Debug + fmt::Display {}
 
 // Общая имплементация устройств
 #[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Device {
-    id: Uuid,                      // у каждого девайса должен быть уникальный номер
-    name: String,                  // у каждого девайса должено быть имя
-    on: bool,                      // каждый девайс может быть или работать или нет
-    config: Box<dyn SmartDevices>, // каждый девайс имеет свой тип информации о себе, который можно прочитать
+    pub(self) id: Uuid,     // у каждого девайса должен быть уникальный номер
+    pub(self) name: String, // у каждого девайса должено быть имя
+    pub(self) on: bool,     // каждый девайс может быть или работать или нет
+    pub(self) config: Arc<dyn SmartDevices + Sync + Send>, // каждый девайс имеет свой тип информации о себе, который можно прочитать
 }
 
 impl fmt::Display for Device {
@@ -52,7 +37,11 @@ impl fmt::Display for Device {
 
 impl Device {
     #[allow(dead_code)]
-    pub(crate) fn new(name: String, config: Box<dyn SmartDevices>, on: Option<bool>) -> Self {
+    pub(crate) fn new(
+        name: String,
+        config: Arc<dyn SmartDevices + Sync + Send>,
+        on: Option<bool>,
+    ) -> Self {
         Device {
             id: Uuid::new_v4(),
             name,
@@ -73,8 +62,37 @@ impl Device {
         &self.on
     }
     #[allow(dead_code, clippy::borrowed_box)]
-    pub(crate) fn config(&self) -> &Box<dyn SmartDevices> {
+    pub(crate) fn config(&self) -> &Arc<dyn SmartDevices + Sync + Send> {
         &self.config
+    }
+}
+
+pub(self) struct RwLockDevice {
+    device: RwLock<Device>,
+}
+
+#[tonic::async_trait]
+impl DeviceControl for RwLockDevice {
+    async fn switch(&self, request: Request<Toggle>) -> Result<Response<Empty>, Status> {
+        println!("Received request from: {:?}", request);
+
+        let status = self.device.read().unwrap().on;
+        self.device.write().unwrap().on = !status;
+
+        let response = devices::Empty {};
+
+        Ok(Response::new(response))
+    }
+
+    async fn get_status(&self, _request: Request<Empty>) -> Result<Response<DeviceStatus>, Status> {
+        let response = devices::DeviceStatus {
+            id: self.device.read().unwrap().id().to_string(),
+            name: self.device.read().unwrap().name().to_string(),
+            on: self.device.read().unwrap().on().to_owned(),
+            config: format!("{:?}", self.device.read().unwrap().config()),
+        };
+
+        Ok(Response::new(response))
     }
 }
 
@@ -83,15 +101,100 @@ mod tests {
     #[warn(unused_imports)]
     use super::*;
 
-    #[warn(unused_imports)]
     use self::outlet::SmartOutlet;
-    // #[warn(unused_imports)]
-    // use self::thermometer::SmartThermometer;
+    use self::thermometer::SmartThermometer;
+
+    use tokio::spawn;
+    use tokio::sync::oneshot;
+    use tokio::time::{sleep, Duration};
+
+    use ctp::devices::device_control_client::DeviceControlClient;
+    use ctp::devices::device_control_server::DeviceControlServer;
+    use tonic::transport::Server;
 
     #[test]
     fn get_name() {
-        let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
+        let test_outlet = Arc::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new("test_device".to_string(), test_outlet, None);
         assert_eq!(test_dev.name(), "test_device".to_string());
+    }
+
+    #[test]
+    fn get_config_outlet() {
+        let test_outlet = Arc::new(SmartOutlet::new("test_outlet".to_string(), None));
+        let test_dev = Device::new("test_device".to_string(), test_outlet, None);
+        let config = test_dev.config();
+        assert_eq!(
+            format!("{config:?}"),
+            "SmartOutlet { description: \"test_outlet\", power: 0 }"
+        );
+    }
+
+    #[test]
+    fn get_config_thermometer() {
+        let test_thermometer =
+            Arc::new(SmartThermometer::new("test_thermometer".to_string(), None));
+        let test_dev = Device::new("test_device".to_string(), test_thermometer, None);
+        let config = test_dev.config();
+        assert_eq!(
+            format!("{config:?}"),
+            "SmartThermometer { description: \"test_thermometer\", temperature: 0 }"
+        );
+    }
+
+    // TEST connect
+
+    #[tokio::test]
+    async fn test_client_server() {
+        let test_outlet = Arc::new(SmartOutlet::new("test_outlet".to_string(), None));
+        let test_dev = Device::new("test_device".to_string(), test_outlet, None);
+
+        let test_dev_rwlock = RwLockDevice {
+            device: RwLock::new(test_dev.clone()),
+        };
+
+        let addr = "127.0.0.1:50052";
+
+        let (signal_tx, signal_rx) = oneshot::channel();
+
+        spawn(
+            Server::builder()
+                .add_service(DeviceControlServer::new(test_dev_rwlock))
+                .serve_with_shutdown(addr.parse().unwrap(), async {
+                    signal_rx.await.ok();
+                    println!("Server shutdown");
+                }),
+        );
+
+        let _ = sleep(Duration::from_millis(1000)).await;
+
+        println!("Server start at {}", addr);
+
+        #[warn(unused_mut)]
+        let mut client = DeviceControlClient::connect("http://".to_owned() + addr)
+            .await
+            .unwrap();
+
+        println!("Client start at {}", "http://".to_owned() + addr);
+
+        let response = client.get_status(Request::new(Empty {})).await;
+
+        assert_eq!(
+            format!("{:?}", response.unwrap().into_inner()),
+            format!("DeviceStatus {{ id: \"{}\", name: \"test_device\", on: false, config: \"SmartOutlet {{ description: \\\"test_outlet\\\", power: 0 }}\" }}", test_dev.clone().id())
+        );
+
+        let response = client.switch(Request::new(Toggle { on: true })).await;
+
+        assert_eq!(format!("{:?}", response.unwrap().into_inner()), "Empty");
+
+        let response = client.get_status(Request::new(Empty {})).await;
+
+        assert_eq!(
+            format!("{:?}", response.unwrap().into_inner()),
+            format!("DeviceStatus {{ id: \"{}\", name: \"test_device\", on: true, config: \"SmartOutlet {{ description: \\\"test_outlet\\\", power: 0 }}\" }}", test_dev.clone().id())
+        );
+
+        let _ = signal_tx.send(());
     }
 }

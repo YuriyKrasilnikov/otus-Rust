@@ -1,15 +1,25 @@
 // CQRS implementation 
 
 syntax = "proto3";
+package devices;
 
-service Outlet {
-    rpc Toggle (bool) returns (Empty);
-
-    rpc GetStatus (Empty) returns (Status);
+service DeviceControl {
+    //Command
+    rpc Switch (Toggle) returns (Empty);
+    //Query
+    rpc GetStatus (Empty) returns (DeviceStatus);
 }
 
 message Empty {
 }
 
-message Status {
+message Toggle {
+    bool on = 1;
+}
+
+message DeviceStatus {
+    string id     = 1;
+    string name   = 2;
+    bool   on     = 3;
+    string config = 4;
 }

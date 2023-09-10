@@ -84,6 +84,8 @@ mod tests {
     #[warn(unused_imports)]
     use super::*;
 
+    use tonic::codegen::Arc;
+
     #[warn(unused_imports)]
     use crate::device::outlet::SmartOutlet;
     #[warn(unused_imports)]
@@ -99,25 +101,25 @@ mod tests {
 
     #[test]
     fn add_device() {
-        let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
+        let test_outlet = Arc::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new("test_device".to_string(), test_outlet, None);
         let mut test_room = SmartRoom::new("test_room".to_string());
 
         assert_eq!(test_room.add_device(test_dev.clone(), None), Ok(()));
         assert_eq!(test_room.get(None).len(), 1);
-        assert_eq!(
-            test_room.get(Some(vec!["test_device".to_string()])),
-            vec![&test_dev]
-        );
+
+        let result = test_room.get(Some(vec!["test_device".to_string()]))[0];
+
+        assert_eq!(result.name(), "test_device".to_string());
     }
 
     #[test]
     fn remove_device() {
-        let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
+        let test_outlet = Arc::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new("test_device".to_string(), test_outlet, None);
         let mut test_room = SmartRoom::new("test_room".to_string());
 
-        assert_eq!(test_room.add_device(test_dev.clone(), None), Ok(()));
+        assert_eq!(test_room.add_device(test_dev, None), Ok(()));
         assert_eq!(test_room.get(None).len(), 1);
 
         assert_eq!(test_room.remove_device("test_device".to_string()), Ok(()));
@@ -126,11 +128,11 @@ mod tests {
 
     #[test]
     fn report() {
-        let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
+        let test_outlet = Arc::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new("test_device".to_string(), test_outlet, None);
         let mut test_room = SmartRoom::new("test_room".to_string());
 
-        assert_eq!(test_room.add_device(test_dev.clone(), None), Ok(()));
+        assert_eq!(test_room.add_device(test_dev, None), Ok(()));
 
         let report = test_room.report(None);
 

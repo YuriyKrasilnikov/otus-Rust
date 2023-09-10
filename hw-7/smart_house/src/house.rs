@@ -108,6 +108,8 @@ mod tests {
     #[warn(unused_imports)]
     use super::*;
 
+    use tonic::codegen::Arc;
+
     #[warn(unused_imports)]
     use crate::device::outlet::SmartOutlet;
     #[warn(unused_imports)]
@@ -151,12 +153,12 @@ mod tests {
 
         let good_result: Result<Vec<&String>, RoomError> = Ok(vec![&name_device]);
 
-        let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
+        let test_outlet = Arc::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new(name_device.clone(), test_outlet, None);
         let mut test_house = SmartHouse::new("test_house".to_string());
 
         let _ = test_house.add_room(name_room.clone());
-        let _ = test_house.add_device(name_room.clone(), test_dev.clone());
+        let _ = test_house.add_device(name_room.clone(), test_dev);
 
         assert_eq!(test_house.devices(name_room.clone()), good_result);
     }
@@ -166,12 +168,12 @@ mod tests {
         let name_room = "test_room".to_string();
         let name_device = "test_device".to_string();
 
-        let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
+        let test_outlet = Arc::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new(name_device.clone(), test_outlet, None);
         let mut test_house = SmartHouse::new("test_house".to_string());
 
         let _ = test_house.add_room(name_room.clone());
-        let _ = test_house.add_device(name_room.clone(), test_dev.clone());
+        let _ = test_house.add_device(name_room.clone(), test_dev);
 
         assert_eq!(
             test_house.devices(name_room.clone()),
@@ -189,7 +191,7 @@ mod tests {
         let name_room = "test_room".to_string();
         let name_device = "test_device".to_string();
 
-        let test_outlet = Box::new(SmartOutlet::new("test".to_string(), None));
+        let test_outlet = Arc::new(SmartOutlet::new("test".to_string(), None));
         let test_dev = Device::new(name_device.clone(), test_outlet, None);
         let mut test_house = SmartHouse::new(name_house.clone());
 
@@ -207,7 +209,7 @@ mod tests {
             "Name: test_house,\nRooms:\n[\n{\nName: test_room,\nDevices:\n[\n]\n},\n]".to_string()
         );
 
-        let _ = test_house.add_device(name_room.clone(), test_dev.clone());
+        let _ = test_house.add_device(name_room.clone(), test_dev);
 
         // print!("{}\n",test_house.report(None));
         assert_eq!(test_house.report(None), "Name: test_house,\nRooms:\n[\n{\nName: test_room,\nDevices:\n[\n{\nName: test_device,\nOn: false,\nDescription: test,\nPower: 0\n},\n]\n},\n]".to_string());

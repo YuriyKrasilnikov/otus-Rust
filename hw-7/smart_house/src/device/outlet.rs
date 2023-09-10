@@ -2,12 +2,11 @@ use std::fmt;
 
 use std::option::Option;
 
-use super::dyn_partial_eq::DynPartialEq;
 use super::SmartDevices;
 
 // Розетка
 
-#[derive(Debug, Clone, DynPartialEq, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SmartOutlet {
     description: String,
     power: u8,
