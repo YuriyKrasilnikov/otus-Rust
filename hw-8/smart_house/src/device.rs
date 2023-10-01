@@ -8,6 +8,9 @@ use std::option::Option;
 
 use uuid::Uuid;
 
+use async_trait::async_trait;
+use anyhow::{anyhow, Result};
+
 use std::sync::Arc;
 // use std::sync::Mutex;
 use std::sync::RwLock;
@@ -21,6 +24,8 @@ use device_grpc::devices;
 use device_grpc::devices::device_control_server::DeviceControl;
 use device_grpc::devices::{DeviceStatus, Empty, Toggle};
 
+use device_quic::common::make_client_endpoint;
+
 #[derive(Debug, Clone)]
 pub struct RwLockDevice {
     device: Arc<RwLock<Device>>,
@@ -33,6 +38,67 @@ impl RwLockDevice {
 
     pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, Device>> {
         self.device.write()
+    }
+}
+
+// #[async_trait]
+impl RwLockDevice {
+    async fn listening(&self, client_addr: &str, server_addr: &str, cert_address: &str, server_cert: &Vec<u8>) -> Result<(), anyhow::Error> {        
+        let endpoint_client = make_client_endpoint(
+            client_addr.parse().unwrap(),
+            &[&server_cert]
+        )
+            .map_err(|e| anyhow!("failed to make client endpoint: {}", e))
+            .unwrap();
+        // connect to server
+        let outcoming_conn = endpoint_client
+            .connect(
+                server_addr.parse().unwrap(),
+                cert_address
+            )
+            .map_err(|e| anyhow!("failed to make connecting: {}", e))
+            .unwrap();
+    
+        let connection = outcoming_conn
+            .await
+            .map_err(|e| anyhow!("failed to create client connection: {}", e))
+            .unwrap();
+    
+        while let Ok(mut recv) = connection
+            .accept_uni()
+            .await
+            .map_err(|e| anyhow!("failed to create client Uni listener: {}", e))
+            {
+            // println!("start");
+            'listener: loop {
+                // Because it is a unidirectional stream, we can only receive not send back.
+                let tempe = &mut [255_u8; 1];
+                let size = recv.read_exact(tempe)
+                    .await
+                    .map_err(|e| anyhow!("failed to read: {}", e));
+                // println!("size {:?}", size);
+                if size.is_err() { 
+                    // println!("finish");
+                    break 'listener;
+                }
+                let _ = self
+                        .write()
+                        .unwrap()
+                        .config()
+                        .write()
+                        .unwrap()
+                        .listening(
+                            tempe.to_vec()
+                        );
+                
+                // println!("recv {:?}", i8::from_ne_bytes(*tempe));
+                // self.temperature = i8::from_ne_bytes(*tempe);
+            }
+        }
+        // Make sure the server has a chance to clean up
+        endpoint_client.wait_idle().await;
+        // println!("exit");
+        Ok(())
     }
 }
 
@@ -347,17 +413,20 @@ mod tests {
 
                 println!("send {}", &temp);
 
-                // let config = test_dev_rwlock_test
-                //     .read()
-                //     .unwrap()
-                //     .config()
-                //     .read()
-                //     .unwrap()
-                //     .to_string();
-                // assert_eq!(
-                //     format!("{:?}", config),
-                //     format!("SmartThermometer {{ description: \"test_thermometer\", temperature: {} }}", temp)
-                // );
+                let _ = sleep(Duration::from_millis(500)).await;
+
+                let config = test_dev_rwlock_test
+                    .read()
+                    .unwrap()
+                    .config()
+                    .read()
+                    .unwrap()
+                    .to_string();
+                
+                assert_eq!(
+                    format!("{:}", config),
+                    format!("Description: test_thermometer,\nTemperature: {}", temp)
+                );
 
             }
 
@@ -377,28 +446,32 @@ mod tests {
         let _ = sleep(Duration::from_millis(1000)).await;
 
         let _ = test_dev_rwlock
-            .write()
-            .unwrap()
-            .config()
-            .write()
-            .unwrap()
-            .listening(
-                client_addr,
-                server_addr,
-                cert_address, 
-                &server_cert
-            )
+            .listening(client_addr, server_addr, cert_address, &server_cert)
             .await;
 
-        let config = test_dev_rwlock_test
-            .read()
-            .unwrap()
-            .config()
-            .read()
-            .unwrap()
-            .to_string();
+        // let _ = test_dev_rwlock
+        //     .write()
+        //     .unwrap()
+        //     .config()
+        //     .write()
+        //     .unwrap()
+        //     .listening(
+        //         client_addr,
+        //         server_addr,
+        //         cert_address, 
+        //         &server_cert
+        //     )
+        //     .await;
 
-        println!("config {:?}", config);
+        // let config = test_dev_rwlock_test
+        //     .read()
+        //     .unwrap()
+        //     .config()
+        //     .read()
+        //     .unwrap()
+        //     .to_string();
+
+        // println!("config {:?}", config);
 
 
         // let endpoint_client = make_client_endpoint(
