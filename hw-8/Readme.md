@@ -1,0 +1,1 @@
+cargo add -p smart_house anyhow

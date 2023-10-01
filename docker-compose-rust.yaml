@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  rust:
+    image: rust:latest
+    container_name: rust
+    #restart: unless-stopped
+    volumes:
+      - ./:/app
+    tty: true

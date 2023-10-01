@@ -1,0 +1,13 @@
+[package]
+name = "device_quic"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.22"
+rustls = { version = "0.21.0", features = ["quic"]}
+tokio = { version = "1.28.1", features = ["rt", "rt-multi-thread", "macros", "sync"] }
+rcgen = "0.11.1"
+quinn = "0.10.2"
