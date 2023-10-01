@@ -1,9 +1,9 @@
 pub(crate) mod room;
 
 use std::fmt;
-use std::sync::Arc;
+// use std::sync::Arc;
 // use std::sync::Mutex;
-use std::sync::RwLock;
+// use std::sync::RwLock;
 use std::option::Option;
 use std::collections::HashMap;
 
@@ -13,7 +13,7 @@ use self::uuid::Uuid;
 use self::room::RoomError;
 use self::room::SmartRoom;
 
-use crate::device::Device;
+use crate::device::RwLockDevice;
 
 // Умный дом
 
@@ -54,11 +54,11 @@ impl SmartHouse {
         Ok(())
     }
 
-    pub fn add_device(&mut self, room: String, device: Device) -> Result<(), RoomError> {
+    pub fn add_device(&mut self, room: String, device: RwLockDevice) -> Result<(), RoomError> {
         let smartroom = self.rooms.get_mut(&room).ok_or(RoomError {})?;
         //SmartRoom::add_devices(smartroom, device);
         let _ = smartroom.add_device(
-            Arc::new(RwLock::new(device)), 
+            device, 
             None
         );
         Ok(())

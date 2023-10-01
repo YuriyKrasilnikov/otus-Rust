@@ -19,7 +19,7 @@ pub struct SmartThermometer {
 
 #[async_trait]
 impl SmartDevices for SmartThermometer {
-    async fn listening(&mut self, client_addr: &str, server_addr: &str, cert_address: &str, server_cert: &Vec<u8>) -> Result<(), anyhow::Error> {
+    async fn listening(&mut self, client_addr: &str, server_addr: &str, cert_address: &str, server_cert: &Vec<u8>) -> Result<(), anyhow::Error> {        
         let endpoint_client = make_client_endpoint(
             client_addr.parse().unwrap(),
             &[&server_cert]

@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::sync::Arc;
+// use std::sync::Arc;
 // use std::sync::Mutex;
-use std::sync::RwLock;
+// use std::sync::RwLock;
 use std::option::Option;
 
-use crate::device::Device;
+use crate::device::RwLockDevice;
 
 // Комната
 #[derive(Debug)]
 pub struct SmartRoom {
     name: String,
-    devices: HashMap<String, Arc<RwLock<Device>>>,
+    devices: HashMap<String, RwLockDevice>,
 }
 
 #[derive(Debug)]
@@ -35,11 +35,11 @@ impl SmartRoom {
     pub(crate) fn name(&self) -> &str {
         &self.name
     }
-    pub(crate) fn devices(&self) -> &HashMap<String, Arc<RwLock<Device>>> {
+    pub(crate) fn devices(&self) -> &HashMap<String, RwLockDevice> {
         &self.devices
     }
 
-    pub(crate) fn get(&self, devices: Option<Vec<String>>) -> Vec<Arc<RwLock<Device>>>{
+    pub(crate) fn get(&self, devices: Option<Vec<String>>) -> Vec<RwLockDevice>{
         if devices.is_some() {
             self.devices
                 .iter()
@@ -72,7 +72,7 @@ impl SmartRoom {
         }
     }
 
-    pub(crate) fn add_device(&mut self, device: Arc<RwLock<Device>>, name: Option<String>) -> fmt::Result {
+    pub(crate) fn add_device(&mut self, device: RwLockDevice, name: Option<String>) -> fmt::Result {
 
         self.devices
             .insert(name
