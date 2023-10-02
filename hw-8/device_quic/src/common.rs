@@ -25,7 +25,10 @@ pub fn make_client_endpoint(
 /// - a stream of incoming QUIC connections
 /// - server certificate serialized into DER format
 #[allow(unused)]
-pub fn make_server_endpoint(bind_addr: SocketAddr, cert_address: &str) -> Result<(Endpoint, Vec<u8>), Box<dyn Error>> {
+pub fn make_server_endpoint(
+    bind_addr: SocketAddr,
+    cert_address: &str,
+) -> Result<(Endpoint, Vec<u8>), Box<dyn Error>> {
     let (server_config, server_cert) = configure_server(cert_address)?;
     let endpoint = Endpoint::server(server_config, bind_addr)?;
     Ok((endpoint, server_cert))
@@ -64,7 +67,6 @@ fn configure_server(cert_address: &str) -> Result<(ServerConfig, Vec<u8>), Box<d
 #[allow(unused)]
 pub const ALPN_QUIC_HTTP: &[&[u8]] = &[b"hq-29"];
 
-
 #[cfg(test)]
 mod tests {
     #[warn(unused_imports)]
@@ -93,10 +95,10 @@ mod tests {
             while let Ok((mut send, mut recv)) = connection.accept_bi().await {
                 // Because it is a bidirectional stream, we can both send and receive.
                 let request = recv.read_to_end(50).await.unwrap();
-            
+
                 // println!("request: {:?}", String::from_utf8(request).unwrap());
                 assert_eq!("request", String::from_utf8(request).unwrap());
-        
+
                 send.write_all(b"response").await.unwrap();
                 send.finish().await.unwrap();
             }
@@ -108,20 +110,14 @@ mod tests {
 
         let endpoint = make_client_endpoint("0.0.0.0:1234".parse().unwrap(), &[&server_cert])?;
         // connect to server
-        let outcoming_conn = endpoint
-            .connect(server_addr, cert_address)
-            .unwrap();
-        let connection = outcoming_conn
-            .await
-            .unwrap();
-        
+        let outcoming_conn = endpoint.connect(server_addr, cert_address).unwrap();
+        let connection = outcoming_conn.await.unwrap();
+
         // println!("[client] connected: addr={}", connection.remote_address());
         assert_eq!("127.0.0.1:5000", connection.remote_address().to_string());
 
-        let (mut send, mut recv) = connection
-            .open_bi()
-            .await?;
-        
+        let (mut send, mut recv) = connection.open_bi().await?;
+
         send.write_all(b"request").await?;
         send.finish().await?;
 

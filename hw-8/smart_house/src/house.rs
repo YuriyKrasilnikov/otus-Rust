@@ -4,8 +4,8 @@ use std::fmt;
 // use std::sync::Arc;
 // use std::sync::Mutex;
 // use std::sync::RwLock;
-use std::option::Option;
 use std::collections::HashMap;
+use std::option::Option;
 
 extern crate uuid;
 use self::uuid::Uuid;
@@ -57,10 +57,7 @@ impl SmartHouse {
     pub fn add_device(&mut self, room: String, device: RwLockDevice) -> Result<(), RoomError> {
         let smartroom = self.rooms.get_mut(&room).ok_or(RoomError {})?;
         //SmartRoom::add_devices(smartroom, device);
-        let _ = smartroom.add_device(
-            device, 
-            None
-        );
+        let _ = smartroom.add_device(device, None);
         Ok(())
     }
 
@@ -107,130 +104,142 @@ impl SmartHouse {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     #[warn(unused_imports)]
-//     use super::*;
+#[cfg(test)]
+mod tests {
+    #[warn(unused_imports)]
+    use super::*;
 
-//     use tonic::codegen::Arc;
+    use std::sync::RwLock;
+    use tonic::codegen::Arc;
 
-//     #[warn(unused_imports)]
-//     use crate::device::outlet::SmartOutlet;
-//     #[warn(unused_imports)]
-//     use crate::device::Device;
-//     // #[warn(unused_imports)]
-//     // use device::thermometer::SmartThermometer;
+    #[warn(unused_imports)]
+    use crate::device::outlet::SmartOutlet;
+    #[warn(unused_imports)]
+    use crate::device::Device;
+    // #[warn(unused_imports)]
+    // use device::thermometer::SmartThermometer;
 
-//     #[test]
-//     fn get_null() {
-//         let test_house = SmartHouse::new("test_house".to_string());
-//         assert_eq!(test_house.get(None).len(), 0);
-//     }
+    #[test]
+    fn get_null() {
+        let test_house = SmartHouse::new("test_house".to_string());
+        assert_eq!(test_house.get(None).len(), 0);
+    }
 
-//     #[test]
-//     fn add_room() {
-//         let mut test_house = SmartHouse::new("test_house".to_string());
+    #[test]
+    fn add_room() {
+        let mut test_house = SmartHouse::new("test_house".to_string());
 
-//         assert_eq!(test_house.add_room("test_room".to_string()), Ok(()));
-//         assert_eq!(test_house.get(None).len(), 1);
-//         assert_eq!(
-//             test_house.get(Some(vec!["test_room".to_string()]))[0].name(),
-//             "test_room"
-//         );
-//     }
+        assert_eq!(test_house.add_room("test_room".to_string()), Ok(()));
+        assert_eq!(test_house.get(None).len(), 1);
+        assert_eq!(
+            test_house.get(Some(vec!["test_room".to_string()]))[0].name(),
+            "test_room"
+        );
+    }
 
-//     #[test]
-//     fn remove_room() {
-//         let mut test_house = SmartHouse::new("test_house".to_string());
+    #[test]
+    fn remove_room() {
+        let mut test_house = SmartHouse::new("test_house".to_string());
 
-//         assert_eq!(test_house.add_room("test_room".to_string()), Ok(()));
-//         assert_eq!(test_house.get(None).len(), 1);
+        assert_eq!(test_house.add_room("test_room".to_string()), Ok(()));
+        assert_eq!(test_house.get(None).len(), 1);
 
-//         assert_eq!(test_house.remove_room("test_room".to_string()), Ok(()));
-//         assert_eq!(test_house.get(None).len(), 0);
-//     }
+        assert_eq!(test_house.remove_room("test_room".to_string()), Ok(()));
+        assert_eq!(test_house.get(None).len(), 0);
+    }
 
-//     #[test]
-//     fn add_device() {
-//         let name_room = "test_room".to_string();
-//         let name_device = "test_device".to_string();
+    #[test]
+    fn add_device() {
+        let name_room = "test_room".to_string();
+        let name_device = "test_device".to_string();
 
-//         let good_result: Result<Vec<&String>, RoomError> = Ok(vec![&name_device]);
+        let good_result = vec![&name_device];
 
-//         let test_outlet = Arc::new(
-//                 SmartOutlet::new(
-//                     "test".to_string(),
-//                     None
-//                 )
-//         );
-//         let test_dev = Device::new(name_device.clone(), test_outlet, None);
-//         let mut test_house = SmartHouse::new("test_house".to_string());
+        let test_outlet = Arc::new(RwLock::new(SmartOutlet::new(
+            "test_outlet".to_string(),
+            None,
+        )));
+        let test_dev = RwLockDevice::new(Arc::new(RwLock::new(Device::new(
+            "test_device".to_string(),
+            test_outlet,
+            None,
+        ))));
+        let mut test_house = SmartHouse::new("test_house".to_string());
 
-//         let _ = test_house.add_room(name_room.clone());
-//         let _ = test_house.add_device(name_room.clone(), test_dev);
+        let _ = test_house.add_room(name_room.clone());
+        let _ = test_house.add_device(name_room.clone(), test_dev);
 
-//         assert_eq!(test_house.devices(name_room.clone()), good_result);
-//     }
+        assert_eq!(test_house.devices(name_room.clone()).unwrap(), good_result);
+    }
 
-//     #[test]
-//     fn remove_device() {
-//         let name_room = "test_room".to_string();
-//         let name_device = "test_device".to_string();
+    #[test]
+    fn remove_device() {
+        let name_room = "test_room".to_string();
+        let name_device = "test_device".to_string();
 
-//         let test_outlet = Arc::new(
-//                 SmartOutlet::new(
-//                     "test".to_string(),
-//                     None
-//                 )
-//         );
-//         let test_dev = Device::new(name_device.clone(), test_outlet, None);
-//         let mut test_house = SmartHouse::new("test_house".to_string());
+        let test_outlet = Arc::new(RwLock::new(SmartOutlet::new(
+            "test_outlet".to_string(),
+            None,
+        )));
 
-//         let _ = test_house.add_room(name_room.clone());
-//         let _ = test_house.add_device(name_room.clone(), test_dev);
+        let test_dev = RwLockDevice::new(Arc::new(RwLock::new(Device::new(
+            "test_device".to_string(),
+            test_outlet,
+            None,
+        ))));
 
-//         assert_eq!(
-//             test_house.devices(name_room.clone()),
-//             Ok(vec![&name_device])
-//         );
+        let mut test_house = SmartHouse::new("test_house".to_string());
 
-//         let _ = test_house.remove_device(name_room.clone(), name_device.clone());
+        let _ = test_house.add_room(name_room.clone());
+        let _ = test_house.add_device(name_room.clone(), test_dev);
 
-//         assert_eq!(test_house.devices(name_room.clone()), Ok(vec![]));
-//     }
+        assert_eq!(
+            test_house.devices(name_room.clone()).unwrap(),
+            vec![&name_device]
+        );
 
-//     #[test]
-//     fn report() {
-//         let name_house = "test_house".to_string();
-//         let name_room = "test_room".to_string();
-//         let name_device = "test_device".to_string();
+        let _ = test_house.remove_device(name_room.clone(), name_device.clone());
 
-//         let test_outlet = Arc::new(
-//             SmartOutlet::new(
-//                 "test".to_string(),
-//                 None
-//             )
-//         );
-//         let test_dev = Device::new(name_device.clone(), test_outlet, None);
-//         let mut test_house = SmartHouse::new(name_house.clone());
+        assert_eq!(
+            test_house.devices(name_room.clone()).unwrap(),
+            Vec::<&String>::new()
+        );
+    }
 
-//         // print!("{}\n",test_house.report(None));
-//         assert_eq!(
-//             test_house.report(None),
-//             "Name: test_house,\nRooms:\n[\n]".to_string()
-//         );
+    #[test]
+    fn report() {
+        let name_house = "test_house".to_string();
+        let name_room = "test_room".to_string();
 
-//         let _ = test_house.add_room(name_room.clone());
+        let test_outlet = Arc::new(RwLock::new(SmartOutlet::new(
+            "test_outlet".to_string(),
+            None,
+        )));
 
-//         // print!("{}\n",test_house.report(None));
-//         assert_eq!(
-//             test_house.report(None),
-//             "Name: test_house,\nRooms:\n[\n{\nName: test_room,\nDevices:\n[\n]\n},\n]".to_string()
-//         );
+        let test_dev = RwLockDevice::new(Arc::new(RwLock::new(Device::new(
+            "test_device".to_string(),
+            test_outlet,
+            None,
+        ))));
+        let mut test_house = SmartHouse::new(name_house.clone());
 
-//         let _ = test_house.add_device(name_room.clone(), test_dev);
+        // print!("{}\n",test_house.report(None));
+        assert_eq!(
+            test_house.report(None),
+            "Name: test_house,\nRooms:\n[\n]".to_string()
+        );
 
-//         // print!("{}\n",test_house.report(None));
-//         assert_eq!(test_house.report(None), "Name: test_house,\nRooms:\n[\n{\nName: test_room,\nDevices:\n[\n{\nName: test_device,\nOn: false,\nDescription: test,\nPower: 0\n},\n]\n},\n]".to_string());
-//     }
-// }
+        let _ = test_house.add_room(name_room.clone());
+
+        // print!("{}\n",test_house.report(None));
+        assert_eq!(
+            test_house.report(None),
+            "Name: test_house,\nRooms:\n[\n{\nName: test_room,\nDevices:\n[\n]\n},\n]".to_string()
+        );
+
+        let _ = test_house.add_device(name_room.clone(), test_dev);
+
+        // print!("{}\n",test_house.report(None));
+        assert_eq!(test_house.report(None), "Name: test_house,\nRooms:\n[\n{\nName: test_room,\nDevices:\n[\n{\nName: test_device,\nOn: false,\nDescription: test_outlet,\nPower: 0\n},\n]\n},\n]".to_string());
+    }
+}
