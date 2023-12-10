@@ -1,0 +1,31 @@
+[package]
+name = "smart_house"                   # the name of the package
+version = "0.0.1"              # the current version, obeying semver
+authors = ["Yuriy Krasilnikov"]
+edition = "2021"
+
+[dependencies]
+dyn_partial_eq = "0.1.2"
+uuid = {version = "1.4.1", features = ["v4"]}
+tonic = "0.10.0"
+tokio = { version = "^1.32.0", features = ["macros"] }
+bytes = "1.5.0"
+
+device_grpc = { path = "../device_grpc" }
+device_quic = { path = "../device_quic" }
+anyhow = "1.0.75"
+async-trait = "0.1.73"
+thiserror = "1.0.50"
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["lib","dylib"]
+name = "smart_house"
+path = "src/lib.rs"
+
+# [[bin]]
+# name = "smart_house"
+# path = "src/main.rs"
+

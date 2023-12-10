@@ -1,0 +1,89 @@
+<!-- prettier-ignore -->
+{% extends "base.html" %}
+
+{% block title %}Hello {{ smart_house_key }}{% endblock %}
+
+{% block content %}
+
+<h1>You Smart House {{ smart_house_key }}</h1>
+
+<form action="">
+
+  <input type="text" name="name" placeholder="Enter room"/>
+
+  <button
+    type="submit"
+    hx-post="/api/v1/add_room"
+    hx-ext='json-enc'
+    hx-target="#room_list"
+    hx-swap="innerHtml"
+  >
+    Add Room
+  </button>
+</form>
+<form action="">
+
+  <input type="text" name="name" placeholder="Enter room"/>
+
+  <button
+    type="submit"
+    hx-post="/api/v1/remove_room"
+    hx-ext='json-enc'
+    hx-target="#room_list"
+    hx-swap="innerHtml"
+  >
+    Remove Room
+  </button>
+</form>
+<div id="room_list">
+
+</div>
+<br />
+<form action="">
+  <input type="text" name="room" placeholder="Enter room"/>
+  <input type="text" name="name" placeholder="Enter device name"/>
+
+  <button
+    type="submit"
+    hx-post="/api/v1/add_device"
+    hx-ext='json-enc'
+    hx-target="#device_list"
+    hx-swap="innerHtml"
+  >
+    Add device
+  </button>
+</form>
+<form action="">
+
+  <input type="text" name="room" placeholder="Enter room"/>
+  <input type="text" name="name" placeholder="Enter device name"/>
+
+  <button
+    type="submit"
+    hx-post="/api/v1/remove_device"
+    hx-ext='json-enc'
+    hx-target="#device_list"
+    hx-swap="innerHtml"
+  >
+    Remove device
+  </button>
+</form>
+<div id="device_list">
+
+</div>
+<br />
+<form action="">
+  <button
+    type="submit"
+    hx-post="/api/v1/report"
+    hx-ext='json-enc'
+    hx-target="#report"
+    hx-swap="innerHtml"
+  >
+    Report
+  </button>
+</form>
+<div id="report">
+
+</div>
+{% endblock %}

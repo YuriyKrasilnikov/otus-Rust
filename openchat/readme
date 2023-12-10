@@ -1,0 +1,1 @@
+cargo run -- --prompt 'Write helloworld' --sample-len 10 --tracing --cpu --temperature 0.2 --top-p 0.95
